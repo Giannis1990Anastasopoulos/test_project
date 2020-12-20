@@ -125,30 +125,36 @@ int main(void)
     /* USER CODE BEGIN 2 */
     RetargetInit(&huart2);
     printf("\t\t\tStarting Application\r\n");
-    if (ADT7420_Init() == 0) {
-        printf("Failed to initialize the ADT7420 sensor\r\n");
-    }
-    else {
-        ADT7420_Reset();
-        ADT7420_SetResolution(1);
-        ADT7420_SetOperationMode(ADT7420_OP_MODE_CONT_CONV);
-        sensor_was_init = 1;
-    }
     perform_measurement = 1;
+    sensor_was_init = 0;
     printf("\t\t\tInitialization completed\r\n");
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        if ((hours_passed % 3) == 0)
+        if ((hours_passed % 3) == 0) {
+            if (sensor_was_init == 0) {
+                if (ADT7420_Init() == 0) {
+                    printf("Failed to initialize the ADT7420 sensor\r\n");
+                }
+                else {
+                    ADT7420_Reset();
+                    ADT7420_SetResolution(1);
+                    ADT7420_SetOperationMode(ADT7420_OP_MODE_CONT_CONV);
+                    sensor_was_init = 1;
+                }
+            }
             if (perform_measurement == 1) {
                 measure_temperature_and_calculate_pid_value();
                 perform_measurement = 0;
             }
             else if ((hours_passed % 3) == 1) {
+                ADT7420_SetOperationMode(ADT7420_OP_MODE_SHUTDOWN);
+                sensor_was_init = 1;
                 HAL_PWREx_EnterSTOP0Mode(PWR_STOPENTRY_WFI);
             }
+        }
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
@@ -406,7 +412,6 @@ static void MX_GPIO_Init(void)
 */
 static void measure_temperature_and_calculate_pid_value(void)
 {
-    previous_delay = 0;
     float temp = 0.0f;
     if (sensor_was_init == 1) {
         float temp = ADT7420_GetTemperature();
