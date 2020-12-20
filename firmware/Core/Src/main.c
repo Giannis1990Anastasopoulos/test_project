@@ -22,9 +22,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdint.h>
 #include <stdio.h>
+#include "ADT7420.h"
 #include "retarget.h"
-
 
 /* USER CODE END Includes */
 
@@ -52,6 +53,7 @@ TIM_HandleTypeDef htim16;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+static uint8_t sensor_was_init = 0;
 
 /* USER CODE END PV */
 
@@ -106,6 +108,15 @@ int main(void)
     /* USER CODE BEGIN 2 */
     RetargetInit(&huart2);
     printf("\t\t\tStarting Application\r\n");
+    if (ADT7420_Init() == 0) {
+        printf("Failed to initialize the ADT7420 sensor\r\n");
+    }
+    else {
+        ADT7420_Reset();
+        ADT7420_SetResolution(1);
+        ADT7420_SetOperationMode(ADT7420_OP_MODE_CONT_CONV);
+        sensor_was_init = 1;
+    }
 
     printf("\t\t\tInitialization completed\r\n");
     /* USER CODE END 2 */
@@ -113,6 +124,14 @@ int main(void)
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
+        if (sensor_was_init == 1) {
+            float temp = ADT7420_GetTemperature();
+            printf("Measured Temperature: %.2f\r\n", temp);
+        }
+        else {
+            printf("Unable to measure the temperature\r\n");
+        }
+        HAL_Delay(1000);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
