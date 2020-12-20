@@ -36,6 +36,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define SET_TEMP 25.00f
+#define K_P 50
+#define K_I 10
+#define K_D 1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -48,12 +52,24 @@ I2C_HandleTypeDef hi2c1;
 
 RTC_HandleTypeDef hrtc;
 
+TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim16;
 
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-static uint8_t sensor_was_init = 0;
+// Variable to check if the sensor was intialized successfully.
+static volatile uint8_t sensor_was_init = 0;
+// Delay to be applied between receivng a pulse and activating the Heater. For 50Hz current max vaule is 200ms.
+static volatile uint8_t phase_delay = 0;
+// Variable holding the previously calculated delay.
+static volatile uint8_t previous_delay = 0;
+// Variable holding the accumulated error over time
+float volatile accumulated_error = 0;
+// Variable holding the error of the previous measurement
+float volatile previous_error = 0;
+// Flag to perform temperature measurement
+uint8_t volatile perform_measurement = 0;
 
 /* USER CODE END PV */
 
@@ -117,21 +133,17 @@ int main(void)
         ADT7420_SetOperationMode(ADT7420_OP_MODE_CONT_CONV);
         sensor_was_init = 1;
     }
-
+    perform_measurement = 1;
     printf("\t\t\tInitialization completed\r\n");
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        if (sensor_was_init == 1) {
-            float temp = ADT7420_GetTemperature();
-            printf("Measured Temperature: %.2f\r\n", temp);
+        if (perform_measurement == 1) {
+            measure_temperature_and_calculate_pid_value();
+            perform_measurement = 0;
         }
-        else {
-            printf("Unable to measure the temperature\r\n");
-        }
-        HAL_Delay(1000);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
@@ -382,6 +394,48 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+/**
+ * @brief Function used to measure and calculate the
+ *        delay between the receving a pulse on the
+ *        input pin and enabling the output pin.
+*/
+static void measure_temperature_and_calculate_pid_value(void)
+{
+    previous_delay = 0;
+    float temp = 0.0f;
+    if (sensor_was_init == 1) {
+        float temp = ADT7420_GetTemperature();
+        printf("Measured Temperature: %.2f\r\n", temp);
+    }
+    else {
+        printf("Unable to measure the temperature\r\n");
+    }
+
+    float error = SET_TEMP - temp;
+    accumulated_error += error;
+    /** Restrict accumulated error to a max value in order
+     * to avoid it compiting against the proportional factor.
+    */
+    if (accumulated_error > 50.00f) {
+        accumulated_error = 50.00f;
+    }
+    if (accumulated_error < -50.00f) {
+        accumulated_error = -50.00f;
+    }
+
+    float pid_output = (K_P * error) + (K_I * accumulated_error) + (K_D * previous_error);
+    if (pid_output < 0) {
+        phase_delay = 200;
+    }
+    else if (pid_output > 200) {
+        phase_delay = 0;
+    }
+    else {
+        phase_delay = 200 - (uint8_t)pid_output;
+    }
+    previous_error = error;
+    MX_TIM6_Run(10000);
+}
 
 /**
   * @brief Configure and run timer16
