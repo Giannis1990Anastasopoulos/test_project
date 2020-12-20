@@ -62,8 +62,6 @@ UART_HandleTypeDef huart2;
 static volatile uint8_t sensor_was_init = 0;
 // Delay to be applied between receivng a pulse and activating the Heater. For 50Hz current max vaule is 200ms.
 static volatile uint8_t phase_delay = 0;
-// Variable holding the previously calculated delay.
-static volatile uint8_t previous_delay = 0;
 // Variable holding the accumulated error over time
 float volatile accumulated_error = 0;
 // Variable holding the error of the previous measurement
@@ -495,11 +493,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if (GPIO_Pin == INPUT_PIN_Pin) {
-        if (previous_delay != phase_delay) {
-            HAL_GPIO_WritePin(OUTPUT_PIN_GPIO_Port, OUTPUT_PIN_Pin, GPIO_PIN_RESET);
-            MX_TIM16_Run(phase_delay);
-            previous_delay = phase_delay;
-        }
+        HAL_GPIO_WritePin(OUTPUT_PIN_GPIO_Port, OUTPUT_PIN_Pin, GPIO_PIN_RESET);
+        MX_TIM16_Run(phase_delay);
     }
 }
 
