@@ -1,4 +1,4 @@
-/***************************************************************************//**
+/***************************************************************************/ /**
  *   @file   ADT7420.c
  *   @brief  Implementation of ADT7420 Driver.
  *   @author DBogdan (dragos.bogdan@analog.com)
@@ -39,18 +39,14 @@
 ********************************************************************************
  *   SVN Revision: 798
 *******************************************************************************/
-
-/******************************************************************************/
-/***************************** Include Files **********************************/
-/******************************************************************************/
 #include "ADT7420.h"
 
 /******************************************************************************/
 /************************ Variables Definitions *******************************/
 /******************************************************************************/
-unsigned char resolutionSetting = 0;    // Current resolution setting
+unsigned char resolutionSetting = 0; // Current resolution setting
 
-/***************************************************************************//**
+/***************************************************************************/ /**
  * @brief Reads the value of a register.
  *
  * @param registerAddress - Address of the register.
@@ -70,10 +66,10 @@ unsigned char ADT7420_GetRegisterValue(unsigned char registerAddress)
              1,
              1);
 
-	return registerValue;
+    return registerValue;
 }
 
-/***************************************************************************//**
+/***************************************************************************/ /**
  * @brief Sets the value of a register.
  *
  * @param registerAddress - Address of the register.
@@ -84,8 +80,8 @@ unsigned char ADT7420_GetRegisterValue(unsigned char registerAddress)
 void ADT7420_SetRegisterValue(unsigned char registerAddress,
                               unsigned char registerValue)
 {
-    unsigned char dataBuffer[2] = {0, 0};
-    
+    unsigned char dataBuffer[2] = { 0, 0 };
+
     dataBuffer[0] = registerAddress;
     dataBuffer[1] = registerValue;
     I2C_Write(ADT7420_ADDRESS,
@@ -94,7 +90,7 @@ void ADT7420_SetRegisterValue(unsigned char registerAddress,
               1);
 }
 
-/***************************************************************************//**
+/***************************************************************************/ /**
  * @brief Initializes the communication peripheral and checks if the device is
  *        present.
  *
@@ -107,19 +103,17 @@ void ADT7420_SetRegisterValue(unsigned char registerAddress,
 unsigned char ADT7420_Init(void)
 {
     unsigned char status = 0;
-    unsigned char test   = 0;
-    
-    status = I2C_Init(100000);
+    unsigned char test = 0;
+
     test = ADT7420_GetRegisterValue(ADT7420_REG_ID);
-    if(test != ADT7420_DEFAULT_ID)
-    {
-        status = 0;
+    if (test == ADT7420_DEFAULT_ID) {
+        status = 1;
     }
-    
+
     return status;
 }
 
-/***************************************************************************//**
+/***************************************************************************/ /**
  * @brief Resets the ADT7420.
  *        The ADT7420 does not respond to I2C bus commands while the default
  *        values upload (approximately 200 us).
@@ -129,7 +123,7 @@ unsigned char ADT7420_Init(void)
 void ADT7420_Reset(void)
 {
     unsigned char registerAddress = ADT7420_REG_RESET;
-    
+
     I2C_Write(ADT7420_ADDRESS,
               &registerAddress,
               1,
@@ -137,7 +131,7 @@ void ADT7420_Reset(void)
     resolutionSetting = 0;
 }
 
-/***************************************************************************//**
+/***************************************************************************/ /**
  * @brief Sets the operational mode for ADT7420.
  *
  * @param mode - Operation mode.
@@ -158,7 +152,7 @@ void ADT7420_SetOperationMode(unsigned char mode)
     ADT7420_SetRegisterValue(ADT7420_REG_CONFIG, registerValue);
 }
 
-/***************************************************************************//**
+/***************************************************************************/ /**
  * @brief Sets the resolution for ADT7420.
  *
  * @param resolution - Resolution.
@@ -178,44 +172,38 @@ void ADT7420_SetResolution(unsigned char resolution)
     resolutionSetting = resolution;
 }
 
-/***************************************************************************//**
+/***************************************************************************/ /**
  * @brief Reads the temperature data and converts it to Celsius degrees.
  *
  * @return temperature - Temperature in degrees Celsius.
 *******************************************************************************/
 float ADT7420_GetTemperature(void)
 {
-    unsigned char  msbTemp = 0;
-    unsigned char  lsbTemp = 0;
-    unsigned short temp    = 0;
-    float          tempC   = 0;
+    unsigned char msbTemp = 0;
+    unsigned char lsbTemp = 0;
+    unsigned short temp = 0;
+    float tempC = 0;
 
     msbTemp = ADT7420_GetRegisterValue(ADT7420_REG_TEMP_MSB);
     lsbTemp = ADT7420_GetRegisterValue(ADT7420_REG_TEMP_LSB);
     temp = ((unsigned short)msbTemp << 8) + lsbTemp;
-    if(resolutionSetting)
-    {
-        if(temp & 0x8000)
-        {
+    if (resolutionSetting) {
+        if (temp & 0x8000) {
             /*! Negative temperature */
             tempC = (float)((signed long)temp - 65536) / 128;
         }
-        else
-        {
+        else {
             /*! Positive temperature */
             tempC = (float)temp / 128;
         }
     }
-    else
-    {
+    else {
         temp >>= 3;
-        if(temp & 0x1000)
-        {
+        if (temp & 0x1000) {
             /*! Negative temperature */
             tempC = (float)((signed long)temp - 8192) / 16;
         }
-        else
-        {
+        else {
             /*! Positive temperature */
             tempC = (float)temp / 16;
         }

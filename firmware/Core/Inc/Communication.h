@@ -1,7 +1,8 @@
-/***************************************************************************//**
+/***************************************************************************/ /**
  *   @file   Communication.h
  *   @brief  Header file of Communication Driver.
  *   @author DBogdan (dragos.bogdan@analog.com)
+ *   @edited by: Ioannis Anastasopoulos
 ********************************************************************************
  * Copyright 2012(c) Analog Devices, Inc.
  *
@@ -45,13 +46,13 @@
 /******************************************************************************/
 /* Include Files                                                              */
 /******************************************************************************/
+#include "stm32l4xx_hal.h"
 
 /******************************************************************************/
 /* Functions Prototypes                                                       */
 /******************************************************************************/
 
-/*! Initializes the I2C communication peripheral. */
-unsigned char I2C_Init(unsigned long clockFreq);
+extern I2C_HandleTypeDef hi2c1;
 
 /*! Writes data to a slave device. */
 unsigned char I2C_Write(unsigned char slaveAddress,
@@ -64,27 +65,5 @@ unsigned char I2C_Read(unsigned char slaveAddress,
                        unsigned char* dataBuffer,
                        unsigned char bytesNumber,
                        unsigned char stopBit);
-
-/*! Initializes the SPI communication peripheral. */
-unsigned char SPI_Init(unsigned char lsbFirst,
-                       unsigned long clockFreq,
-                       unsigned char clockPol,
-                       unsigned char clockEdg);
-
-/*! Initializes the SPI communication peripheral. */
-unsigned char SPI_Init(unsigned char lsbFirst,
-                       unsigned long clockFreq,
-                       unsigned char clockPol,
-                       unsigned char clockEdg);
-
-/*! Reads data from SPI. */
-unsigned char SPI_Read(unsigned char slaveDeviceId,
-                       unsigned char* data,
-                       unsigned char bytesNumber);
-
-/*! Writes data to SPI. */
-unsigned char SPI_Write(unsigned char slaveDeviceId,
-                        unsigned char* data,
-                        unsigned char bytesNumber);
 
 #endif // _COMMUNICATION_H_
