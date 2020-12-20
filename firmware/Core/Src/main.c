@@ -68,6 +68,8 @@ float volatile accumulated_error = 0;
 float volatile previous_error = 0;
 // Flag to perform temperature measurement
 uint8_t volatile perform_measurement = 0;
+// Variable used to count the hours counted by the RTC
+uint8_t hours_passed = 0;
 
 /* USER CODE END PV */
 
@@ -78,6 +80,7 @@ static void MX_I2C1_Init(void);
 static void MX_RTC_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
+void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef* hrtc);
 static void MX_TIM16_Run(uint16_t ms);
 static void MX_TIM6_Run(uint16_t ms);
 static void measure_temperature_and_calculate_pid_value(void);
@@ -138,10 +141,14 @@ int main(void)
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        if (perform_measurement == 1) {
-            measure_temperature_and_calculate_pid_value();
-            perform_measurement = 0;
-        }
+        if ((hours_passed % 3) == 0)
+            if (perform_measurement == 1) {
+                measure_temperature_and_calculate_pid_value();
+                perform_measurement = 0;
+            }
+            else if ((hours_passed % 3) == 1) {
+                HAL_PWREx_EnterSTOP0Mode(PWR_STOPENTRY_WFI);
+            }
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
@@ -496,6 +503,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
         HAL_GPIO_WritePin(OUTPUT_PIN_GPIO_Port, OUTPUT_PIN_Pin, GPIO_PIN_RESET);
         MX_TIM16_Run(phase_delay);
     }
+}
+
+void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef* hrtc)
+{
+    SystemClock_Config();
+    hours_passed++;
 }
 
 /* USER CODE END 4 */
