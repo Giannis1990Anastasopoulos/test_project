@@ -149,7 +149,7 @@ int main(void)
                 measure_temperature_and_calculate_pid_value();
                 perform_measurement = 0;
             }
-            else if ((hours_passed % 3) == 1) {
+            else {
                 ADT7420_SetOperationMode(ADT7420_OP_MODE_SHUTDOWN);
                 sensor_was_init = 1;
                 HAL_PWREx_EnterSTOP0Mode(PWR_STOPENTRY_WFI);
