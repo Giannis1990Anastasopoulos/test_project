@@ -491,6 +491,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
         HAL_TIM_Base_Stop_IT(&htim6);
     }
 }
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == INPUT_PIN_Pin) {
+        if (previous_delay != phase_delay) {
+            HAL_GPIO_WritePin(OUTPUT_PIN_GPIO_Port, OUTPUT_PIN_Pin, GPIO_PIN_RESET);
+            MX_TIM16_Run(phase_delay);
+            previous_delay = phase_delay;
+        }
+    }
+}
+
 /* USER CODE END 4 */
 
 /**
