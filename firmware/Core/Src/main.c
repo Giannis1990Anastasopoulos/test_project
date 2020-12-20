@@ -388,7 +388,7 @@ static void MX_GPIO_Init(void)
     /*Configure GPIO pin : INPUT_PIN_Pin */
     GPIO_InitStruct.Pin = INPUT_PIN_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     HAL_GPIO_Init(INPUT_PIN_GPIO_Port, &GPIO_InitStruct);
 }
 
