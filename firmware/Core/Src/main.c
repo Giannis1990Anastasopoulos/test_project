@@ -438,7 +438,7 @@ static void measure_temperature_and_calculate_pid_value(void)
         accumulated_error = -50.00f;
     }
 
-    float pid_output = (K_P * error) + (K_I * accumulated_error) + (K_D * previous_error);
+    float pid_output = (K_P * error) + (K_I * accumulated_error) + (K_D * (error - previous_error));
     if (pid_output < 0) {
         phase_delay = 200;
     }
