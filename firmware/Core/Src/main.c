@@ -152,8 +152,11 @@ int main(void)
             else {
                 ADT7420_SetOperationMode(ADT7420_OP_MODE_SHUTDOWN);
                 sensor_was_init = 0;
+                HAL_GPIO_WritePin(OUTPUT_PIN_GPIO_Port, OUTPUT_PIN_Pin, GPIO_PIN_RESET);
                 HAL_GPIO_DeInit(OUTPUT_PIN_GPIO_Port, OUTPUT_PIN_Pin);
                 HAL_GPIO_DeInit(INPUT_PIN_GPIO_Port, INPUT_PIN_Pin);
+                HAL_TIM_Base_Stop_IT(&htim6);
+                HAL_TIM_Base_Stop_IT(&htim16);
                 HAL_PWREx_EnterSTOP0Mode(PWR_STOPENTRY_WFI);
             }
         }
