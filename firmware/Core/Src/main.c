@@ -157,6 +157,7 @@ int main(void)
                 HAL_GPIO_DeInit(INPUT_PIN_GPIO_Port, INPUT_PIN_Pin);
                 HAL_TIM_Base_Stop_IT(&htim6);
                 HAL_TIM_Base_Stop_IT(&htim16);
+                accumulated_error = 0;
                 HAL_PWREx_EnterSTOP0Mode(PWR_STOPENTRY_WFI);
             }
         }
