@@ -151,7 +151,9 @@ int main(void)
             }
             else {
                 ADT7420_SetOperationMode(ADT7420_OP_MODE_SHUTDOWN);
-                sensor_was_init = 1;
+                sensor_was_init = 0;
+                HAL_GPIO_DeInit(OUTPUT_PIN_GPIO_Port, OUTPUT_PIN_Pin);
+                HAL_GPIO_DeInit(INPUT_PIN_GPIO_Port, INPUT_PIN_Pin);
                 HAL_PWREx_EnterSTOP0Mode(PWR_STOPENTRY_WFI);
             }
         }
@@ -513,6 +515,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef* hrtc)
 {
     SystemClock_Config();
+    MX_GPIO_Init();
     hours_passed++;
 }
 
